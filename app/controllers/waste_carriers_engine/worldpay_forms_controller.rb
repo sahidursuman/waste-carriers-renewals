@@ -41,7 +41,17 @@ module WasteCarriersEngine
     end
 
     def pending
-      respond_to_unsuccessful_payment(:pending)
+      return unless set_up_valid_transient_registration?(params[:reg_identifier])
+
+      order = find_order_by_code(params[:orderKey])
+
+      if new_worldpay_service(params, order).valid_pending?
+        @transient_registration.next!
+        redirect_to_correct_form
+      else
+        flash[:error] = I18n.t(".waste_carriers_engine.worldpay_forms.pending.invalid_response")
+        go_back
+      end
     end
 
     private
