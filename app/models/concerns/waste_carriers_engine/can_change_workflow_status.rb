@@ -257,7 +257,7 @@ module WasteCarriersEngine
 
           transitions from: :worldpay_form,
                       to: :renewal_received_form,
-                      if: :pending_convictions_check?,
+                      if: :pending_payment_or_convictions_check?,
                       success: :send_renewal_received_email
 
           transitions from: :worldpay_form,
@@ -549,8 +549,8 @@ module WasteCarriersEngine
       temp_payment_method == "card"
     end
 
-    def pending_convictions_check?
-      conviction_check_required?
+    def pending_payment_or_convictions_check?
+      finance_details.balance.positive? || conviction_check_required?
     end
 
     def send_renewal_received_email

@@ -63,9 +63,10 @@ module WasteCarriersEngine
             }
           end
 
-          context "when the params are valid" do
+          context "when the params are valid and the balance is paid" do
             before do
               allow_any_instance_of(WorldpayService).to receive(:valid_success?).and_return(true)
+              transient_registration.finance_details.update_attributes(balance: 0)
             end
 
             it "redirects to renewal_complete_form" do

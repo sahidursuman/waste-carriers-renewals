@@ -22,14 +22,32 @@ module WasteCarriersEngine
             transient_registration.conviction_sign_offs = nil
           end
 
-          it "changes to :renewal_complete_form after the 'next' event" do
-            expect(transient_registration).to transition_from(:worldpay_form).to(:renewal_complete_form).on_event(:next)
+          context "when the balance is 0" do
+            it "changes to :renewal_complete_form after the 'next' event" do
+              expect(transient_registration).to transition_from(:worldpay_form).to(:renewal_complete_form).on_event(:next)
+            end
+
+            it "does not send a confirmation email after the 'next' event" do
+              old_emails_sent_count = ActionMailer::Base.deliveries.count
+              transient_registration.next!
+              expect(ActionMailer::Base.deliveries.count).to eq(old_emails_sent_count)
+            end
           end
 
-          it "does not send a confirmation email after the 'next' event" do
-            old_emails_sent_count = ActionMailer::Base.deliveries.count
-            transient_registration.next!
-            expect(ActionMailer::Base.deliveries.count).to eq(old_emails_sent_count)
+          context "when there is a positive balance" do
+            before do
+              transient_registration.finance_details.balance = 100
+            end
+
+            it "changes to :renewal_received_form after the 'next' event" do
+              expect(transient_registration).to transition_from(:worldpay_form).to(:renewal_received_form).on_event(:next)
+            end
+
+            it "sends a confirmation email after the 'next' event" do
+              old_emails_sent_count = ActionMailer::Base.deliveries.count
+              transient_registration.next!
+              expect(ActionMailer::Base.deliveries.count).to eq(old_emails_sent_count + 1)
+            end
           end
         end
 
